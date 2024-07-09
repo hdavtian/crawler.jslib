@@ -4,4 +4,4 @@ To install
 `npm install`
 
 To create bundles in dist for usage
-`npm run build`
+`npx webpack`
