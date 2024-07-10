@@ -72,6 +72,15 @@ class Util {
             return null;
         }
     }
+    static isListAppReady(appName) {
+        try {
+            var dxDataGrid = $("[data-app='" + appName + "'] .icGrid").dxDataGrid("instance");
+            var isReady = dxDataGrid.getDataSource().isLoaded();
+            return isReady;
+        } catch {
+            return true;
+        }
+    }
     static isComponent(appName) {
         let siteVersion = Page.getSiteVersion();
         switch (siteVersion) {

@@ -117,6 +117,186 @@ class Page {
     static getAllApps_v4angular() {
         return this.getAllApps_v4();
     }
+    // amelia
+    static getAllAppNames() {
+        var $apps = $('div[data-app]:visible');
+        var _appsArray = [];
+
+        $apps.each(function (index) {
+            _appsArray.push($(this).attr("data-app"));
+        });
+        return _appsArray
+    }
+    static getAllComponentAppNames() {
+        var $apps = $('div[data-app]:visible');
+        var _appsArray = [];
+
+        $apps.each(function (index) {
+            var _appName = $(this).attr("data-app");
+            var is = $(this).isolateScope();
+            var isComponent = is.applet.component;
+            if (isComponent) {
+                /*
+                var _componentName = is.applet.componentType;
+                _appsArray.push({
+                    appName: _appName,
+                    componentName: _componentName
+                })
+                */
+                _appsArray.push(_appName);
+            }
+        });
+        return _appsArray
+    }
+    static getAllComponentInfo(optionalAddedInfo) {
+
+        var $apps = $('div[data-app]:visible');
+        var _appsArray = [];
+        var _this = this;
+
+        $apps.each(function (index) {
+
+            var _appName = $(this).attr("data-app");
+            var is = $(this).isolateScope();
+            var isComponent = is.applet.component;
+
+            if (isComponent) {
+                
+                var _componentName = is.applet.componentType;
+                var _componentPartsObj = _this.getIcComponentInstance(_componentName, _appName);
+                var _parts = (_componentPartsObj != null) ? _componentPartsObj.GetPartsReport() : null;
+                var _url = window.location;
+
+                _appsArray.push({
+                    appName: _appName,
+                    componentName: _componentName,
+                    url: _url,
+                    parts: _parts
+                })
+            }
+        });
+        return JSON.stringify(_appsArray);
+    }
+    static getComponentInfoByAppName(_appName, _additionalInjectedInfo) {
+
+        var $app = $('[data-app="' + _appName + '"]:visible');
+        var $is = $app.isolateScope();
+        var isComponent = $is.applet.component;
+        var componentInfo = {};
+        var _this = this;
+
+        if (isComponent) {
+
+            var _componentName = $is.applet.componentType;
+            var _componentPartsObj = _this.getIcComponentInstance(_componentName, _appName);
+            var _parts = (_componentPartsObj != null) ? _componentPartsObj.GetPartsReport() : null;
+            var _url = window.location;
+
+            componentInfo.appName = _appName;
+            componentInfo.componentName = _componentName;
+            componentInfo.url = _url;
+            componentInfo.parts = _parts;
+
+            if (_additionalInjectedInfo != undefined) {
+                // parse it
+                try {
+
+                    if (typeof _additionalInjectedInfo == 'object') {
+                        _additionalInjectedInfo = JSON.stringify(_additionalInjectedInfo);
+                    }
+
+                    var _additionalInfoObj = JSON.parse(_additionalInjectedInfo);
+
+                    // Iterate over the properties of the object
+                    for (var key in _additionalInfoObj) {
+                        if (_additionalInfoObj.hasOwnProperty(key)) {
+                            componentInfo[key] = _additionalInfoObj[key]
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error parsing JSON string:", error);
+                }
+            }
+        }
+        return JSON.stringify(componentInfo);
+        /*
+        Example:
+        {
+            appName: "CPD.WhatsNew.App",
+            componentName: "DocumentSliderV4",
+            ...
+        }
+        */
+    }
+    static getIcComponentInstance(componentName, appName) {
+
+        var componentInstance;
+
+        switch (componentName.toLowerCase()) {
+
+            case "documentsliderv4":
+                componentInstance = new ictf.DocumentSliderV4(appName);
+                break;
+
+            case "repeaterv4":
+                componentInstance = new ictf.RepeaterV4(appName);
+                break;
+
+            case "answerprogress":
+                componentInstance = new ictf.AnswerProgress(appName);
+                break;
+
+            case "donutchartv4":
+                componentInstance = new ictf.DonutChartV4(appName);
+                break;
+
+            case "donutprogress":
+                componentInstance = new ictf.DonutProgress(appName);
+                break;
+
+            case "plaidlink":
+                componentInstance = new ictf.PlaidLink(appName);
+                break;
+
+            case "stockchartv4":
+                componentInstance = new ictf.StockChartV4(appName);
+                break;
+
+            default:
+                componentInstance = null;
+        }
+
+        return componentInstance;
+    }
+    static getUrlsFromIcMenuObject() {
+
+        function extractLinks(data) {
+            const links = [];
+
+            function processItem(item) {
+                if (item.link && item.link.trim()) {
+                    links.push(item.link);
+                }
+
+                if (item.subMenu && Array.isArray(item.subMenu)) {
+                    item.subMenu.forEach(processItem);
+                }
+            }
+
+            data.forEach(processItem);
+
+            return links;
+        }
+
+        let extractedLinks = extractLinks(window.icMenuDefaultItems);
+
+        // remove signout or logout links
+        extractedLinks = extractedLinks.filter(str => !str.toLowerCase().includes("signout"));
+        extractedLinks = extractedLinks.filter(str => !str.toLowerCase().includes("logout"));
+        extractedLinks = extractedLinks.filter(str => str !== "#");
+
+        return extractedLinks;
+    }
     // *********
     // appTypes: all, input, list, component
     static getAppCountOfType(appType) {
