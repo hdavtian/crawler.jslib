@@ -4,8 +4,8 @@ module.exports = {
   entry: './src/index.js', // Replace with the entry point of your code
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'ictf2.js',
-    library: 'ictf2',
+    filename: 'ictf.js',
+    library: 'ictf',
     libraryTarget: 'umd2',
     globalObject: 'this'
   },
@@ -20,5 +20,11 @@ module.exports = {
       }
     ]
   },
-  mode: 'production'
+  mode: 'production',
+  externals: {
+    '$': 'jQuery',
+    'jquery': 'jQuery',
+    'jquery-ui': 'jquery-ui/jquery-ui.js',
+    'webpack-jquery-ui': 'webpack-jquery-ui'
+  },
 };

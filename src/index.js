@@ -6,6 +6,8 @@ import DonutChartV4 from "./DonutChartV4.js";
 import DonutProgress from "./DonutProgress.js";
 import AnswerProgress from "./AnswerProgress.js";
 import PlaidLink from "./PlaidLink.js";
+import Page from "./util/Page.js";
+import Util from "./util/Util.js";
 
 export {
     IcComponent,
@@ -15,5 +17,7 @@ export {
     DonutChartV4,
     DonutProgress,
     AnswerProgress,
-    PlaidLink
+    PlaidLink,
+    Page,
+    Util
 }
