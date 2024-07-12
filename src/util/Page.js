@@ -117,6 +117,19 @@ class Page {
     static getAllApps_v4angular() {
         return this.getAllApps_v4();
     }
+    static getAllVisibleAppNames(){
+        let visibleAppNames = [];
+        let els = this.getAllApps();
+        for (const el of els) {
+            if (this.isElementVisible(el)) {
+                let appName = el.getAttribute("data-app");
+                if (appName != "") {
+                    visibleAppNames.push(appName)
+                }
+            }
+        }
+        return visibleAppNames;
+    }
     // amelia
     static getAllAppNames() {
         var $apps = $('div[data-app]:visible');
@@ -442,13 +455,22 @@ class Page {
             this.removeCssClass(app, "icsa-heighlighted-app");
         }
     }
+    static elementWidthAndHeightNotZero(el){
+        try {
+            let result = el.clientHeight != 0 && el.clientWidth != 0;
+            return result;
+        } catch(err){
+            return false;
+        }
+    }
     static isElementVisible(el) {
         // check all following conditions
         let jqVisible = this.elJqVisibleCheck(el);
         let hasAriaHidden = this.elHasAttribute(el, "aria-hidden", "true");
         let anyParentHasAriaHidden = this.anyParentHasAttributeWithValue(el, "aria-hidden", "true");
         let anyParentHasOpacityZero = this.anyParentHasCssPropertyWithValue(el, "opacity", "0");
-        return jqVisible && !hasAriaHidden && !anyParentHasAriaHidden && !anyParentHasOpacityZero;
+        let widthAndHeightNotZero = this.elementWidthAndHeightNotZero(el);
+        return jqVisible && !hasAriaHidden && !anyParentHasAriaHidden && !anyParentHasOpacityZero && widthAndHeightNotZero;
     }
     static elHasAttribute(el, _attr, _attrValue) {
         if ($(el).attr(_attr) != undefined) {
