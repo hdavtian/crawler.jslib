@@ -153,14 +153,16 @@ class Util {
         if (this.isInputApp(appName)) {
             return "input";
         }
-        else if (this.isListApp(appName)) {
+        else if (this.isListApp(appName) && !this.isComponent(appName)) {
             return "list";
+        }
+        else if (this.isListApp(appName) && this.isComponent(appName)) {
+            return "component";
         }
         else {
             return "unknown";
         }
     }
-    ;
     static getParentAppName(appName) {
         let siteVersion = Page.getSiteVersion();
         switch (siteVersion) {
