@@ -8,6 +8,7 @@ import AnswerProgress from "./AnswerProgress.js";
 import PlaidLink from "./PlaidLink.js";
 import Page from "./util/Page.js";
 import Util from "./util/Util.js";
+import UtilByEl from "./util/UtilByEl.js"
 
 export {
     IcComponent,
@@ -19,5 +20,6 @@ export {
     AnswerProgress,
     PlaidLink,
     Page,
-    Util
+    Util,
+    UtilByEl
 }
