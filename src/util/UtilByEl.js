@@ -154,7 +154,76 @@ class UtilByEl {
             return null;
         }
     }
-
+    // tabApplications
+    static isTabbedApp(el) {
+        let siteVersion = Page.getSiteVersion();
+        switch (siteVersion) {
+            case "v4-angularjs":
+                return this.isTabbedAppV4AngularJs(el);
+            case "v4-angular":
+                return this.isTabbedAppV4Angular(el);
+            default:
+                return false;
+        }
+    }
+    static isTabbedAppV4AngularJs(el) {
+        try {
+            let info = this.getAppInfoV4AngularJs(el);
+            return info.applet.tabApplications.length > 0;
+        }
+        catch (exception) {
+            return null;
+        }
+    }
+    static isTabbedAppV4Angular(el) {
+        try {
+            let info = this.getAppInfoV4Angular(el);
+            return info.applet.tabApplications.length > 0;
+        }
+        catch (exception) {
+            return null;
+        }
+    }
+    static getTabbedApps(el) {
+        let siteVersion = Page.getSiteVersion();
+        switch (siteVersion) {
+            case "v4-angularjs":
+            case "v4-angular":
+                return this.getTabbedAppsV4AngularJs(el);
+            default:
+                return false;
+        }
+    }
+    static getTabbedAppsV4AngularJs(el) {
+        try {
+            let dxTabPanel = $(el).find(".ic-tabs").dxTabPanel("instance");
+            let dxItems = dxTabPanel.option("items");
+            let tabAppArr = [];
+            for (let dxItem of dxItems) {
+                tabAppArr.push(IcTabApp(dxItem))    
+            }
+            return tabAppArr;
+            function IcTabApp(dxTabPanelObj){
+                return {
+                    "TabId": dxTabPanelObj.tabId,
+                    "TabName": dxTabPanelObj.tabName,
+                    "AppName": dxTabPanelObj.id
+                }
+            }
+        }
+        catch (exception) {
+            return null;
+        }
+    }
+    static clickTabApp(el, _index){
+        try {
+            let dxTabPanel = $(el).find(".ic-tabs").dxTabPanel("instance");
+            dxTabPanel.option("selectedIndex", _index);
+        }
+        catch (exception) {
+            return null;
+        }
+    }
     // end of class
 }
 
