@@ -207,8 +207,19 @@ class UtilByEl {
                 return {
                     "TabId": dxTabPanelObj.tabId,
                     "TabName": dxTabPanelObj.tabName,
-                    "AppName": dxTabPanelObj.id
+                    "AppName": dxTabPanelObj.id,
+                    "UniqueTabName": CreateUniqueTabName(dxTabPanelObj.id, dxTabPanelObj.tabId)
                 }
+            }
+            function CreateUniqueTabName(appName, tabId){
+                let name = "";
+                if (appName.indexOf("|") !== -1) {
+                    let parts = appName.split("|")
+                    name = parts[0].trim() + "." + tabId.trim();
+                } else {
+                    name = appName.trim() + "." + tabId.trim();
+                }
+                return name;
             }
         }
         catch (exception) {
