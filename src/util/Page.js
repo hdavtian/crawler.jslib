@@ -304,6 +304,8 @@ class Page {
         let extractedLinks = extractLinks(window.icMenuDefaultItems);
 
         // remove signout or logout links
+        extractedLinks = extractedLinks.filter(str => !str.toLowerCase().includes("signin"));
+        extractedLinks = extractedLinks.filter(str => !str.toLowerCase().includes("login"));
         extractedLinks = extractedLinks.filter(str => !str.toLowerCase().includes("signout"));
         extractedLinks = extractedLinks.filter(str => !str.toLowerCase().includes("logout"));
         extractedLinks = extractedLinks.filter(str => str !== "#");
