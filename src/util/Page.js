@@ -615,6 +615,58 @@ class Page {
         });
         return _appsArray;
     }
+    static getUrlModel() {
+        const url = window.location;
+        const urlModel = {
+            Scheme: url.protocol.replace(':', ''),
+            Host: url.hostname,
+            Port: url.port ? parseInt(url.port) : null,
+            Path: url.pathname,
+            Query: url.search ? url.search.substring(1) : '',
+            Fragment: url.hash ? url.hash.substring(1) : '',
+            Title: document.title,
+            FullUrl: url.href,
+            GeneratedTitleFromParts: generatedTitle
+        };
+        var generatedTitle = CreateTitle(urlModel.Path, urlModel.Fragment, urlModel.FullUrl);
+        urlModel.GeneratedTitleFromParts = generatedTitle;
+    
+        return urlModel;
+    
+        function CreateTitle(path, fragment, fullPath) {
+            if (!path?.trim() || !fragment?.trim()) {
+                // Cleanup task: Remove non-alphanumeric characters and "http"/"https"
+                return fullPath
+                    .replace(/https?:\/\//gi, '') // Remove http or https
+                    .replace(/[^a-zA-Z0-9]/g, ''); // Remove all non-alphanumeric characters
+            }
+    
+            // Process the path: Get the file name without the extension
+            const pathParts = path.split('/');
+            let fileName = pathParts[pathParts.length - 1]?.split('.')[0] || '';
+    
+            // Process the fragment
+            let fragmentPart;
+            if (fragment.includes('=')) {
+                fragmentPart = fragment.split('=').pop() || '';
+            } else {
+                // Work backwards to find the first non-alphanumeric character
+                let index = fragment.length - 1;
+                while (index >= 0 && /[a-zA-Z0-9]/.test(fragment[index])) {
+                    index--;
+                }
+    
+                fragmentPart = fragment.substring(index + 1); // Get substring after the non-alphanumeric character
+            }
+    
+            // Remove non-alphanumeric characters from fileName and fragmentPart
+            fileName = fileName.replace(/[^a-zA-Z0-9]/g, '');
+            fragmentPart = fragmentPart.replace(/[^a-zA-Z0-9]/g, '');
+    
+            // Concatenate processed parts with an underscore
+            return `${fileName}_${fragmentPart}`;
+        }
+    }
 }
 
 export default Page;
