@@ -1,3 +1,4 @@
+import "./styles.scss";
 import IcComponent from "./IcComponent.js";
 import DocumentSliderV4 from "./DocumentSliderV4.js";
 import RepeaterV4 from "./RepeaterV4.js";
