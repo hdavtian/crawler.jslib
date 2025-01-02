@@ -290,19 +290,25 @@ class Page {
 
         function extractLinks(data) {
             const links = [];
-
+        
             function processItem(item) {
-                if (item.link && item.link.trim()) {
+                if (!item || typeof item !== 'object') {
+                    return;
+                }
+        
+                if (item.link != null && typeof item.link === 'string' && item.link.trim()) {
                     links.push(item.link);
                 }
-
+        
                 if (item.subMenu && Array.isArray(item.subMenu)) {
                     item.subMenu.forEach(processItem);
                 }
             }
-
-            data.forEach(processItem);
-
+        
+            if (Array.isArray(data)) {
+                data.forEach(processItem);
+            }
+        
             return links;
         }
 
