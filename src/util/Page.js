@@ -65,7 +65,7 @@ class Page {
         return names;
     }
     static getAppNames_v4() {
-        let $apps = $('div[data-app]');
+        let $apps = $('*[data-app]');
         let _appsArray = [];
         $apps.each(function (index) {
             _appsArray.push($(this).attr("data-app"));
@@ -104,7 +104,7 @@ class Page {
         return apps;
     }
     static getAllApps_v4() {
-        let $apps = $('div[data-app]');
+        let $apps = $('*[data-app]');
         let apps = [];
         $apps.each(function (index) {
             apps.push($(this)[0]);
@@ -115,7 +115,12 @@ class Page {
         return this.getAllApps_v4();
     }
     static getAllApps_v4angular() {
-        return this.getAllApps_v4();
+        let $apps = $('*[data-app] > :first');
+        let apps = [];
+        $apps.each(function (index) {
+            apps.push($(this)[0]);
+        });
+        return apps;;
     }
     static getAllVisibleAppNames(){
         let visibleAppNames = [];
@@ -132,7 +137,7 @@ class Page {
     }
     // amelia
     static getAllAppNames() {
-        var $apps = $('div[data-app]:visible');
+        var $apps = $('*[data-app]:visible');
         var _appsArray = [];
 
         $apps.each(function (index) {
@@ -141,7 +146,7 @@ class Page {
         return _appsArray
     }
     static getAllComponentAppNames() {
-        var $apps = $('div[data-app]:visible');
+        var $apps = $('*[data-app]:visible');
         var _appsArray = [];
 
         $apps.each(function (index) {
@@ -163,7 +168,7 @@ class Page {
     }
     static getAllComponentInfo(optionalAddedInfo) {
 
-        var $apps = $('div[data-app]:visible');
+        var $apps = $('*[data-app]:visible');
         var _appsArray = [];
         var _this = this;
 
@@ -285,19 +290,25 @@ class Page {
 
         function extractLinks(data) {
             const links = [];
-
+        
             function processItem(item) {
-                if (item.link && item.link.trim()) {
+                if (!item || typeof item !== 'object') {
+                    return;
+                }
+        
+                if (item.link != null && typeof item.link === 'string' && item.link.trim()) {
                     links.push(item.link);
                 }
-
+        
                 if (item.subMenu && Array.isArray(item.subMenu)) {
                     item.subMenu.forEach(processItem);
                 }
             }
-
-            data.forEach(processItem);
-
+        
+            if (Array.isArray(data)) {
+                data.forEach(processItem);
+            }
+        
             return links;
         }
 
@@ -457,9 +468,15 @@ class Page {
             this.removeCssClass(app, "icsa-heighlighted-app");
         }
     }
+    static highlightAllAppElements() {
+        let apps = this.getAllApps();
+        for (let app of apps) {
+            this.addCssClass(app, "icsa-heighlighted-app");
+        }
+    }
     static elementWidthAndHeightNotZero(el){
         try {
-            let result = el.clientHeight != 0 && el.clientWidth != 0;
+            let result = el.offsetHeight != 0 && el.offsetWidth != 0;
             return result;
         } catch(err){
             return false;
@@ -576,7 +593,7 @@ class Page {
         throw "not implemented";
     }
     static getAppNamesByType_v4(appType) {
-        let $apps = $('div[data-app]');
+        let $apps = $('*[data-app]');
         let _appsArray = [];
         $apps.each(function (index) {
             let $this = $(this);
@@ -614,6 +631,58 @@ class Page {
             }
         });
         return _appsArray;
+    }
+    static getUrlModel() {
+        const url = window.location;
+        const urlModel = {
+            Scheme: url.protocol.replace(':', ''),
+            Host: url.hostname,
+            Port: url.port ? parseInt(url.port) : null,
+            Path: url.pathname,
+            Query: url.search ? url.search.substring(1) : '',
+            Fragment: url.hash ? url.hash.substring(1) : '',
+            Title: document.title,
+            FullUrl: url.href,
+            GeneratedTitleFromParts: generatedTitle
+        };
+        var generatedTitle = CreateTitle(urlModel.Path, urlModel.Fragment, urlModel.FullUrl);
+        urlModel.GeneratedTitleFromParts = generatedTitle;
+    
+        return urlModel;
+    
+        function CreateTitle(path, fragment, fullPath) {
+            if (!path?.trim() || !fragment?.trim()) {
+                // Cleanup task: Remove non-alphanumeric characters and "http"/"https"
+                return fullPath
+                    .replace(/https?:\/\//gi, '') // Remove http or https
+                    .replace(/[^a-zA-Z0-9]/g, ''); // Remove all non-alphanumeric characters
+            }
+    
+            // Process the path: Get the file name without the extension
+            const pathParts = path.split('/');
+            let fileName = pathParts[pathParts.length - 1]?.split('.')[0] || '';
+    
+            // Process the fragment
+            let fragmentPart;
+            if (fragment.includes('=')) {
+                fragmentPart = fragment.split('=').pop() || '';
+            } else {
+                // Work backwards to find the first non-alphanumeric character
+                let index = fragment.length - 1;
+                while (index >= 0 && /[a-zA-Z0-9]/.test(fragment[index])) {
+                    index--;
+                }
+    
+                fragmentPart = fragment.substring(index + 1); // Get substring after the non-alphanumeric character
+            }
+    
+            // Remove non-alphanumeric characters from fileName and fragmentPart
+            fileName = fileName.replace(/[^a-zA-Z0-9]/g, '');
+            fragmentPart = fragmentPart.replace(/[^a-zA-Z0-9]/g, '');
+    
+            // Concatenate processed parts with an underscore
+            return `${fileName}_${fragmentPart}`;
+        }
     }
 }
 

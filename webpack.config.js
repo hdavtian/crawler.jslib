@@ -17,6 +17,14 @@ module.exports = {
         use: {
           loader: 'babel-loader'
         }
+      },
+      {
+        test: /\.scss$/i, // Match .scss files
+        use: [
+          'style-loader', // Inject styles into the DOM
+          'css-loader', // Resolves CSS imports
+          'sass-loader', // Compiles SCSS to CSS
+        ],
       }
     ]
   },
@@ -27,4 +35,5 @@ module.exports = {
     'jquery-ui': 'jquery-ui/jquery-ui.js',
     'webpack-jquery-ui': 'webpack-jquery-ui'
   },
+  //devtool: 'source-map'
 };
