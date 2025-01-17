@@ -485,11 +485,28 @@ class Page {
     static isElementVisible(el) {
         // check all following conditions
         let jqVisible = this.elJqVisibleCheck(el);
+        let hasCssVisibleHidden = this.elHasCssPropValue(el, "visibility", "hidden");
         let hasAriaHidden = this.elHasAttribute(el, "aria-hidden", "true");
         let anyParentHasAriaHidden = this.anyParentHasAttributeWithValue(el, "aria-hidden", "true");
         let anyParentHasOpacityZero = this.anyParentHasCssPropertyWithValue(el, "opacity", "0");
         let widthAndHeightNotZero = this.elementWidthAndHeightNotZero(el);
-        return jqVisible && !hasAriaHidden && !anyParentHasAriaHidden && !anyParentHasOpacityZero && widthAndHeightNotZero;
+        return jqVisible && !hasCssVisibleHidden && !hasAriaHidden && !anyParentHasAriaHidden && !anyParentHasOpacityZero && widthAndHeightNotZero;
+    }
+    static anyParentHasCssPropertyWithValue(el, _cssProp, _value) {
+        let _this = this;
+        let result = false;
+        $(el).parents().each(function () {
+            result = _this.elHasCssPropValue(el, _cssProp, _value);
+            // break loop, if false will keep looping
+            if (result) return false;
+        });
+        return result;
+    }
+    static elHasCssPropValue(el, cssPropName, cssPropValue) {
+        if (!el || !cssPropName) return false;
+        const computedStyles = window.getComputedStyle(el);
+        const actualValue = computedStyles.getPropertyValue(cssPropName);
+        return actualValue.trim() === cssPropValue;
     }
     static elHasAttribute(el, _attr, _attrValue) {
         if ($(el).attr(_attr) != undefined) {
@@ -499,48 +516,13 @@ class Page {
             return false;
         }
     }
-    static elHasCssPropValue(el, cssPropName, cssPropValue) {
-        return false;
-    }
     static anyParentHasAttributeWithValue(el, _attr, _attrValue) {
+        let _this = this;
         let result = false;
         $(el).parents().each(function () {
-            let _actualAttrValue = $(this).attr(_attr);
-            if (_actualAttrValue != undefined) {
-                if (_actualAttrValue == _attrValue) {
-                    result = true;
-                    // breaking loop
-                    return false;
-                }
-            }
-        });
-        return result;
-    }
-    static anyParentHasCssPropertyWithValue(el, _cssProp, _value) {
-        let result = false;
-        $(el).parents().each(function () {
-            let _actualValue = $(this).css(_cssProp);
-            if (_actualValue != undefined) {
-                if (_actualValue == _value) {
-                    result = true;
-                    // breaking loop
-                    return false;
-                }
-            }
-        });
-        return result;
-    }
-    static anyParentHasCssValue(el, _cssProp, _cssValue) {
-        let result = false;
-        $(el).parents().each(function () {
-            let _actualCssValue = $(this).css(_cssProp);
-            if (_actualCssValue != undefined) {
-                if (_actualCssValue == _cssValue) {
-                    result = true;
-                    // breaking loop
-                    return false;
-                }
-            }
+            result = _this.elHasAttribute(el, _attr, _attrValue);
+            // break loop, if false will keep looping
+            if (result) return false;
         });
         return result;
     }

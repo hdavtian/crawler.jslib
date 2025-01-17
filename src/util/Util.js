@@ -823,7 +823,7 @@ class Util {
     }
     static isAppSticky(appName) {
         let $el = this.getAppElement(appName);
-        let anyParentIsFixed = Page.anyParentHasCssValue($el[0], "position", "fixed");
+        let anyParentIsFixed = Page.anyParentHasCssPropertyWithValue($el[0], "position", "fixed");
         return $el.css("position") == "fixed" || anyParentIsFixed;
     }
     static getCircularReplacer() {
