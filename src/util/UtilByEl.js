@@ -60,6 +60,7 @@ class UtilByEl {
         try {
             let ICWindow = window;
             //@todo, this may be problematic, still using appname
+            let appName = el.getAttribute("data-app");
             return ICWindow.IC.Testing.getAppComponent(appName);
         }
         catch (exception) {
@@ -184,15 +185,51 @@ class UtilByEl {
             return null;
         }
     }
+    static getTabbedAppNamesV4Angular(angularInfoObj) {
+        try {
+            return angularInfoObj.applet.tabApplications;
+        }
+        catch (exception) {
+            return null;
+        }
+    }
     static getTabbedApps(el) {
         let siteVersion = Page.getSiteVersion();
         switch (siteVersion) {
             case "v4-angularjs":
-            case "v4-angular":
                 return this.getTabbedAppsV4AngularJs(el);
+            case "v4-angular":
+                return this.getTabbedAppsV4Angular(el);
             default:
                 return false;
         }
+    }
+    static getTabbedAppsV4Angular(el) {
+        // need to parse the dom
+        // angular websites do no expose dx api
+        
+        // first get the app names for the tab apps
+        let infoObj = this.getAppInfoV4Angular(el);
+        // this is a string[]
+        let tabAppNames = this.getTabbedAppNamesV4Angular(infoObj);
+        let tabWebElements = el.querySelectorAll(".dx-tabpanel-tabs .dx-item");
+        const tabWebElArray = Array.from(tabWebElements);
+
+        // will return this array
+        let v4tabApps = [];
+        let counter = 1;
+
+        for(let app of tabAppNames){
+            // TabName is the visible title
+            v4tabApps.push({
+                AppName: tabAppNames[counter-1],
+                TabId: "Page" + counter,
+                TabName: tabWebElArray[counter-1].textContent,
+                UniqueTabName: tabAppNames[counter-1] + ".Page" + counter
+            });
+            counter++;
+        }
+        return v4tabApps;
     }
     static getTabbedAppsV4AngularJs(el) {
         try {
@@ -230,6 +267,16 @@ class UtilByEl {
         try {
             let dxTabPanel = $(el).find(".ic-tabs").dxTabPanel("instance");
             dxTabPanel.option("selectedIndex", _index);
+        }
+        catch (exception) {
+            return null;
+        }
+    }
+    static clickTabAppV4Angular(el, _index){
+        try {
+            let tabWebElements = el.querySelectorAll(".dx-tabpanel-tabs .dx-item");
+            const tabWebElArray = Array.from(tabWebElements);
+            tabWebElArray[_index].click();
         }
         catch (exception) {
             return null;

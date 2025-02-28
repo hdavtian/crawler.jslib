@@ -615,7 +615,12 @@ class Page {
         return _appsArray;
     }
     static getUrlModel() {
+
+        let parent = this;
+        // Get the current browser location
         const url = window.location;
+    
+        // Create our urlModel structure
         const urlModel = {
             Scheme: url.protocol.replace(':', ''),
             Host: url.hostname,
@@ -625,47 +630,116 @@ class Page {
             Fragment: url.hash ? url.hash.substring(1) : '',
             Title: document.title,
             FullUrl: url.href,
-            GeneratedTitleFromParts: generatedTitle
+            GeneratedTitleFromParts: ""
         };
-        var generatedTitle = CreateTitle(urlModel.Path, urlModel.Fragment, urlModel.FullUrl);
+    
+        // Generate the title using our new logic
+        let generatedTitle = CreateTitle();
         urlModel.GeneratedTitleFromParts = generatedTitle;
     
+        // Return the final object
         return urlModel;
     
-        function CreateTitle(path, fragment, fullPath) {
-            if (!path?.trim() || !fragment?.trim()) {
-                // Cleanup task: Remove non-alphanumeric characters and "http"/"https"
-                return fullPath
-                    .replace(/https?:\/\//gi, '') // Remove http or https
-                    .replace(/[^a-zA-Z0-9]/g, ''); // Remove all non-alphanumeric characters
-            }
-    
-            // Process the path: Get the file name without the extension
-            const pathParts = path.split('/');
-            let fileName = pathParts[pathParts.length - 1]?.split('.')[0] || '';
-    
-            // Process the fragment
-            let fragmentPart;
-            if (fragment.includes('=')) {
-                fragmentPart = fragment.split('=').pop() || '';
-            } else {
-                // Work backwards to find the first non-alphanumeric character
-                let index = fragment.length - 1;
-                while (index >= 0 && /[a-zA-Z0-9]/.test(fragment[index])) {
-                    index--;
+        /*
+          The inner function that determines the "GeneratedTitleFromParts" value
+          based on site version and certain DOM elements/attributes:
+            1) If siteVersion is "v1":
+               - Look for <form name="aspnetForm" method="post"> with an "action" attribute.
+               - Extract the filename (minus query string and .aspx), then remove non-alphanumeric,
+                 lowercase it, and return it.
+            2) If siteVersion is "v4-angularjs" or "v4-angular":
+               - Look for the <body> element.
+               - Extract its (data-workflow || workflow) and (data-step || step) attributes.
+               - Remove all non-alphanumeric + periods, convert to lowercase, and return an
+                 underscore-delimited string: "workflow_step".
+            3) In any error or unknown-version case, return an empty string.
+        */
+        function CreateTitle() {
+            try {
+                // Call your existing function that returns one of: "v1", "v4-angularjs", "v4-angular"
+                const siteVersion = parent.getSiteVersion();
+                if (!siteVersion) {
+                    return "";
                 }
     
-                fragmentPart = fragment.substring(index + 1); // Get substring after the non-alphanumeric character
+                // Handle based on version
+                switch (siteVersion) {
+                    case "v1": {
+                        // Look for the specific form element
+                        const form = document.querySelector('form[name="aspnetForm"][method="post"]');
+                        if (!form) {
+                            return "";
+                        }
+    
+                        // Get the 'action' attribute value
+                        let actionValue = form.getAttribute("action");
+                        if (!actionValue) {
+                            return "";
+                        }
+    
+                        // Remove leading "./" if present
+                        if (actionValue.startsWith("./")) {
+                            actionValue = actionValue.substring(2);
+                        }
+    
+                        // Strip off any query string (everything after '?')
+                        const questionIndex = actionValue.indexOf('?');
+                        if (questionIndex > -1) {
+                            actionValue = actionValue.substring(0, questionIndex);
+                        }
+    
+                        // Remove .aspx (case-insensitive)
+                        actionValue = actionValue.replace(/\.aspx$/i, "");
+    
+                        // Clean: remove non-alphanumeric, then lowercase
+                        const cleaned = actionValue.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+    
+                        return cleaned;
+                    }
+    
+                    case "v4-angularjs":
+                    case "v4-angular": {
+                        // Look for the <body> element
+                        const body = document.querySelector("body");
+                        if (!body) {
+                            return "";
+                        }
+    
+                        // Get workflow and step from either data-* or direct attributes
+                        const workflow = body.getAttribute("data-workflow") || body.getAttribute("workflow");
+                        const step = body.getAttribute("data-step") || body.getAttribute("step");
+    
+                        // If either is missing, return empty
+                        if (!workflow || !step) {
+                            return "";
+                        }
+    
+                        // Remove all non-alphanumeric and periods, then lowercase
+                        const cleanedWorkflow = workflow
+                            .replace(/[^\w\.]/g, "")     // keep letters/digits/underscore/dot
+                            .replace(/\./g, "")         // remove any remaining dots
+                            .toLowerCase();
+    
+                        const cleanedStep = step
+                            .replace(/[^\w\.]/g, "")
+                            .replace(/\./g, "")
+                            .toLowerCase();
+    
+                        // Combine with underscore
+                        return `${cleanedWorkflow}_${cleanedStep}`;
+                    }
+    
+                    default:
+                        // If we don't recognize the site version, return empty
+                        return "";
+                }
+            } catch (err) {
+                // If any unexpected error occurs, return empty
+                return "";
             }
-    
-            // Remove non-alphanumeric characters from fileName and fragmentPart
-            fileName = fileName.replace(/[^a-zA-Z0-9]/g, '');
-            fragmentPart = fragmentPart.replace(/[^a-zA-Z0-9]/g, '');
-    
-            // Concatenate processed parts with an underscore
-            return `${fileName}_${fragmentPart}`;
         }
     }
+    
 }
 
 export default Page;
