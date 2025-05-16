@@ -221,11 +221,19 @@ class UtilByEl {
 
         for(let app of tabAppNames){
             // TabName is the visible title
+
+            // clean up AppName by replacing "|" with "_"
+            let cleanAppName = tabAppNames[counter - 1].replace(/\|/g, "_");
+
+            // clean up TabName by replacing "|" with "_" as well
+            let rawTabName = tabWebElArray[counter - 1].textContent;
+            let cleanTabName = rawTabName.replace(/\|/g, "_");
+
             v4tabApps.push({
-                AppName: tabAppNames[counter-1],
+                AppName: cleanAppName,
                 TabId: "Page" + counter,
                 TabName: tabWebElArray[counter-1].textContent,
-                UniqueTabName: tabAppNames[counter-1] + ".Page" + counter
+                UniqueTabName: cleanTabName + ".Page" + counter
             });
             counter++;
         }
@@ -241,11 +249,15 @@ class UtilByEl {
             }
             return tabAppArr;
             function IcTabApp(dxTabPanelObj){
+                // clean up AppName and TabName by replacing "|" with "_"
+                let cleanAppName = dxTabPanelObj.id.replace(/\|/g, "_");
+                let cleanTabName = dxTabPanelObj.tabName.replace(/\|/g, "_");
+
                 return {
                     "TabId": dxTabPanelObj.tabId,
-                    "TabName": dxTabPanelObj.tabName,
-                    "AppName": dxTabPanelObj.id,
-                    "UniqueTabName": CreateUniqueTabName(dxTabPanelObj.id, dxTabPanelObj.tabId)
+                    "TabName": cleanTabName,
+                    "AppName": cleanAppName,
+                    "UniqueTabName": CreateUniqueTabName(cleanAppName, dxTabPanelObj.tabId)
                 }
             }
             function CreateUniqueTabName(appName, tabId){
