@@ -1,6 +1,3 @@
-# v4-analyzer-helper-lib
-https://gitlab.investcloud.com/hdavtian/v4-analyzer-helper-lib
-
 ## Table of contents
 
 - [Description](#description)
