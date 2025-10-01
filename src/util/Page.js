@@ -615,12 +615,9 @@ class Page {
         return _appsArray;
     }
     static getUrlModel() {
-
         let parent = this;
-        // Get the current browser location
         const url = window.location;
-    
-        // Create our urlModel structure
+
         const urlModel = {
             Scheme: url.protocol.replace(':', ''),
             Host: url.hostname,
@@ -632,113 +629,81 @@ class Page {
             FullUrl: url.href,
             GeneratedTitleFromParts: ""
         };
-    
-        // Generate the title using our new logic
-        let generatedTitle = CreateTitle();
+
+        // Try to get the generated title, fallback to FullUrl parse if needed
+        let generatedTitle = "";
+        try {
+            generatedTitle = CreateTitle();
+        } catch (err) {
+            // If site version detection or CreateTitle fails, fallback
+            generatedTitle = parseFullUrl(url.href);
+        }
+
+        if (!generatedTitle) {
+            generatedTitle = parseFullUrl(url.href);
+        }
         urlModel.GeneratedTitleFromParts = generatedTitle;
-    
-        // Return the final object
+
         return urlModel;
-    
-        /*
-          The inner function that determines the "GeneratedTitleFromParts" value
-          based on site version and certain DOM elements/attributes:
-            1) If siteVersion is "v1":
-               - Look for <form name="aspnetForm" method="post"> with an "action" attribute.
-               - Extract the filename (minus query string and .aspx), then remove non-alphanumeric,
-                 lowercase it, and return it.
-            2) If siteVersion is "v4-angularjs" or "v4-angular":
-               - Look for the <body> element.
-               - Extract its (data-workflow || workflow) and (data-step || step) attributes.
-               - Remove all non-alphanumeric + periods, convert to lowercase, and return an
-                 underscore-delimited string: "workflow_step".
-            3) In any error or unknown-version case, return an empty string.
-        */
+
+        // Helper: fallback logic for FullUrl
+        function parseFullUrl(fullUrl) {
+            if (!fullUrl) return "";
+            let urlToParse = fullUrl.split('?')[0].split('#')[0];
+            let lastSegment = urlToParse.replace(/\/+$/, '').split('/').pop() || '';
+            return lastSegment.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+        }
+
+        // Main title logic, with per-case try/catch
         function CreateTitle() {
+            let siteVersion;
             try {
-                // Call your existing function that returns one of: "v1", "v4-angularjs", "v4-angular"
-                const siteVersion = parent.getSiteVersion();
-                if (!siteVersion) {
-                    return "";
-                }
-    
-                // Handle based on version
-                switch (siteVersion) {
-                    case "v1": {
-                        // Look for the specific form element
+                siteVersion = parent.getSiteVersion();
+            } catch (err) {
+                // If site version detection fails, fallback
+                return parseFullUrl(url.href);
+            }
+            if (!siteVersion) {
+                return parseFullUrl(url.href);
+            }
+
+            switch (siteVersion) {
+                case "v1": {
+                    try {
                         const form = document.querySelector('form[name="aspnetForm"][method="post"]');
-                        if (!form) {
-                            return "";
-                        }
-    
-                        // Get the 'action' attribute value
+                        if (!form) return "";
                         let actionValue = form.getAttribute("action");
-                        if (!actionValue) {
-                            return "";
-                        }
-    
-                        // Remove leading "./" if present
-                        if (actionValue.startsWith("./")) {
-                            actionValue = actionValue.substring(2);
-                        }
-    
-                        // Strip off any query string (everything after '?')
+                        if (!actionValue) return "";
+                        if (actionValue.startsWith("./")) actionValue = actionValue.substring(2);
                         const questionIndex = actionValue.indexOf('?');
-                        if (questionIndex > -1) {
-                            actionValue = actionValue.substring(0, questionIndex);
-                        }
-    
-                        // Remove .aspx (case-insensitive)
+                        if (questionIndex > -1) actionValue = actionValue.substring(0, questionIndex);
                         actionValue = actionValue.replace(/\.aspx$/i, "");
-    
-                        // Clean: remove non-alphanumeric, then lowercase
-                        const cleaned = actionValue.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
-    
-                        return cleaned;
+                        return actionValue.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+                    } catch (err) {
+                        return parseFullUrl(url.href);
                     }
-    
-                    case "v4-angularjs":
-                    case "v4-angular": {
-                        // Look for the <body> element
+                }
+                case "v4-angularjs":
+                case "v4-angular": {
+                    try {
                         const body = document.querySelector("body");
-                        if (!body) {
-                            return "";
-                        }
-    
-                        // Get workflow and step from either data-* or direct attributes
+                        if (!body) return "";
                         const workflow = body.getAttribute("data-workflow") || body.getAttribute("workflow");
                         const step = body.getAttribute("data-step") || body.getAttribute("step");
-    
-                        // If either is missing, return empty
-                        if (!workflow || !step) {
-                            return "";
-                        }
-    
-                        // Remove all non-alphanumeric and periods, then lowercase
-                        const cleanedWorkflow = workflow
-                            .replace(/[^\w\.]/g, "")     // keep letters/digits/underscore/dot
-                            .replace(/\./g, "")         // remove any remaining dots
-                            .toLowerCase();
-    
-                        const cleanedStep = step
-                            .replace(/[^\w\.]/g, "")
-                            .replace(/\./g, "")
-                            .toLowerCase();
-    
-                        // Combine with underscore
+                        if (!workflow || !step) return "";
+                        const cleanedWorkflow = workflow.replace(/[^\w\.]/g, "").replace(/\./g, "").toLowerCase();
+                        const cleanedStep = step.replace(/[^\w\.]/g, "").replace(/\./g, "").toLowerCase();
                         return `${cleanedWorkflow}_${cleanedStep}`;
+                    } catch (err) {
+                        return parseFullUrl(url.href);
                     }
-    
-                    default:
-                        // If we don't recognize the site version, return empty
-                        return "";
                 }
-            } catch (err) {
-                // If any unexpected error occurs, return empty
-                return "";
+                default:
+                    return parseFullUrl(url.href);
             }
         }
     }
+
     
 }
 
